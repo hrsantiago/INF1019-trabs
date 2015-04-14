@@ -9,10 +9,12 @@ ENDIF(NOT CMAKE_BUILD_TYPE)
 
 SET(CMAKE_CXX_FLAGS_DEBUG "-O0 -ggdb -fno-inline -Wno-unused-parameter")
 SET(CMAKE_CXX_FLAGS_RELEASE "-O4")
-SET(CMAKE_CXX_FLAGS "-Wall -Wextra -Werror -std=c11")
+SET(CMAKE_CXX_FLAGS "-Wall -Wextra -Werror -std=c99")
 
 ADD_EXECUTABLE(sct1
 src/main.c
+src/messenger.c
+src/messenger.h
 )
 
 TARGET_LINK_LIBRARIES(sct1)
