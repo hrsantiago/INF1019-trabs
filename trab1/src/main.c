@@ -7,7 +7,7 @@ int main(int argc, char *argv)
 {
     setbuf(stdout, NULL);
 
-    runAsyncTest();
-    //runSyncTest();
+    //runAsyncTest();
+    runSyncTest();
     return 0;
 }

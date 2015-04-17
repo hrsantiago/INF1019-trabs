@@ -7,7 +7,8 @@
 
 struct synch {
     int buffer[1];
-    int messages;
+    sem_t sendSem;
+    sem_t recvSem;
 };
 
 struct asynch {
@@ -21,7 +22,8 @@ struct asynch {
 synch_t *create_new_s()
 {
     synch_t *handler = (synch_t*)malloc(sizeof(synch_t));
-    handler->messages = 0;
+    sem_init(&handler->sendSem, 0, 1);
+    sem_init(&handler->recvSem, 0, 0);
     return handler;
 }
 
@@ -38,8 +40,8 @@ asynch_t *create_new_a(int capacity)
 
 void destroy(synch_t *h)
 {
-    //sem_destroy(&h->mutex);
-    //free(h->buffer);
+    sem_destroy(&h->sendSem);
+    sem_destroy(&h->recvSem);
     free(h);
 }
 
@@ -53,12 +55,18 @@ void destroy_a(asynch_t *h)
 
 int send(synch_t *h, int *message)
 {
-
+    sem_wait(&h->sendSem);
+    h->buffer[0] = *message;
+    sem_post(&h->recvSem);
+    return 1;
 }
 
 int recv(synch_t *h, int *message)
 {
-
+    sem_wait(&h->recvSem);
+    *message = h->buffer[0];
+    sem_post(&h->sendSem);
+    return 1;
 }
 
 int asend(asynch_t *h, int *message)

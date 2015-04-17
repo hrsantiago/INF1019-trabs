@@ -1,9 +1,9 @@
 #include <pthread.h>
 #include <stdio.h>
-#include "testasync.h"
-#include "messenger.h"
 #include <stdlib.h>
 #include <unistd.h>
+#include "testasync.h"
+#include "messenger.h"
 
 #define msleep(t) usleep(t * 1000)
 
