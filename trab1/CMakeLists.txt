@@ -15,6 +15,10 @@ ADD_EXECUTABLE(sct1
 src/main.c
 src/messenger.c
 src/messenger.h
+src/testasync.c
+src/testasync.h
+src/testsync.c
+src/testsync.h
 )
 
-TARGET_LINK_LIBRARIES(sct1)
+TARGET_LINK_LIBRARIES(sct1 pthread)

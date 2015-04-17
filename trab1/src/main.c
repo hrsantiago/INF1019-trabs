@@ -1,11 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "messenger.h"
+#include "testasync.h"
+#include "testsync.h"
 
 int main(int argc, char *argv)
 {
-    synch_t *sync = create_new_s();
-    free(sync);
-    printf("Hello!\n");
+    setbuf(stdout, NULL);
+
+    runAsyncTest();
+    //runSyncTest();
     return 0;
 }

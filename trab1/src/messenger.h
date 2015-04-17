@@ -10,6 +10,12 @@ synch_t *create_new_s();
 /// Create a new asynchronous channel with certain capacity and return a Handle
 asynch_t *create_new_a(int capacity);
 
+/// Free a synchronous channel
+void destroy(synch_t *h);
+
+/// Free an asynchronous channel
+void destroy_a(asynch_t *h);
+
 /// Send a message through a synchronous channel with capacity 1
 int send(synch_t *h, int *message);
 
