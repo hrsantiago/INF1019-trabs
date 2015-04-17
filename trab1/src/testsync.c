@@ -13,10 +13,12 @@ struct params {
 };
 typedef struct params params_t;
 
-// ensure that producers * totalMessages / consumers is an integer, so the program will finish properly.
-static const int totalMessages = 50;
+// Ensure that producers * totalMessagesPerProducer / consumers is an integer, so the program will finish properly.
+static const int totalMessagesPerProducer = 50;
 static const int producers = 3;
 static const int consumers = 5;
+static const int producerSleepMs = 250;
+static const int consumerSleepMs = 100;
 
 static void *producer(void *vparams)
 {
@@ -24,11 +26,11 @@ static void *producer(void *vparams)
     int i;
     int message;
     printf("Producer %d started\n", params->threadId);
-    for(i = 0; i < totalMessages; ++i) {
-        message = i+((params->threadId-1) * totalMessages);
+    for(i = 0; i < totalMessagesPerProducer; ++i) {
+        message = i+((params->threadId-1) * totalMessagesPerProducer);
         send(params->messenger, &message);
         printf("Producer %d send message %d\n", params->threadId, message);
-        msleep(250);
+        msleep(producerSleepMs);
     }
     printf("Producer %d finished\n", params->threadId);
     free(params);
@@ -40,12 +42,11 @@ static void *consumer(void *vparams)
     params_t *params = (params_t*)vparams;
     int i;
     int message;
-    sleep(1);
     printf("Consumer %d started\n", params->threadId);
-    for(i = 0; i < (producers * totalMessages) / consumers; ++i) {
+    for(i = 0; i < (producers * totalMessagesPerProducer) / consumers; ++i) {
         recv(params->messenger, &message);
         printf("Consumer %d recv message %d\n", params->threadId, message);
-        msleep(100);
+        msleep(consumerSleepMs);
     }
     printf("Consumer %d finished\n", params->threadId);
     free(params);
