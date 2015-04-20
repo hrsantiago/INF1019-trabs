@@ -1,41 +1,22 @@
 #include <pthread.h>
-#include <semaphore.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include "messenger.h"
 
-struct synch {
-    int buffer[1];
-    sem_t sendSem;
-    sem_t recvSem;
-};
-
-struct asynch {
-    int *buffer;
-    int messages;
-    int capacity;
-    sem_t recvSem;
-    sem_t bufferMutex;
-};
-
-synch_t *create_new_s()
+void create_new_s(synch_t *handler)
 {
-    synch_t *handler = (synch_t*)malloc(sizeof(synch_t));
     sem_init(&handler->sendSem, 0, 1);
     sem_init(&handler->recvSem, 0, 0);
-    return handler;
 }
 
-asynch_t *create_new_a(int capacity)
+void create_new_a(asynch_t *handler, int capacity)
 {
-    asynch_t *handler = (asynch_t*)malloc(sizeof(asynch_t));
     handler->buffer = (int*)malloc(capacity * sizeof(int));
     handler->capacity = capacity;
     handler->messages = 0;
     sem_init(&handler->recvSem, 0, 0);
     sem_init(&handler->bufferMutex, 0, 1);
-    return handler;
 }
 
 void destroy(synch_t *h)

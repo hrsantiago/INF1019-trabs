@@ -60,16 +60,13 @@ void runSyncTest()
 
     pthread_t *threads = (pthread_t*)malloc((producers+consumers)*sizeof(pthread_t));
 
-    synch_t *messenger = create_new_s();
-    if(messenger == NULL) {
-        printf("Error allocating messenger\n");
-        return;
-    }
+    synch_t messenger;
+    create_new_s(&messenger);
 
     for(i = 0; i < producers; ++i) {
         params_t *producerParams = (params_t*)malloc(sizeof(params_t));
         producerParams->threadId = i+1;
-        producerParams->messenger = messenger;
+        producerParams->messenger = &messenger;
         if(pthread_create(&threads[i], NULL, producer, producerParams)) {
             printf("Error creating producer thread\n");
             return;
@@ -79,7 +76,7 @@ void runSyncTest()
     for(i = 0; i < consumers; ++i) {
         params_t *consumerParams = (params_t*)malloc(sizeof(params_t));
         consumerParams->threadId = i+1;
-        consumerParams->messenger = messenger;
+        consumerParams->messenger = &messenger;
         if(pthread_create(&threads[producers+i], NULL, consumer, consumerParams)) {
             printf("Error creating producer thread\n");
             return;
@@ -93,6 +90,6 @@ void runSyncTest()
         }
     }
 
-    destroy(messenger);
+    destroy(&messenger);
     free(threads);
 }
