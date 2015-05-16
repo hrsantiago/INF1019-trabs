@@ -12,7 +12,11 @@ SET(CMAKE_CXX_FLAGS_RELEASE "-O4")
 SET(CMAKE_CXX_FLAGS "-Wall -Wextra -Werror -std=c99")
 
 ADD_EXECUTABLE(sim-virtual
+src/log.c
+src/log.h
 src/main.c
+src/pagetable.c
+src/pagetable.h
 )
 
 TARGET_LINK_LIBRARIES(sim-virtual m)
