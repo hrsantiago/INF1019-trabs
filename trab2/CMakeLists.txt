@@ -15,4 +15,4 @@ ADD_EXECUTABLE(sim-virtual
 src/main.c
 )
 
-TARGET_LINK_LIBRARIES(sim-virtual)
+TARGET_LINK_LIBRARIES(sim-virtual m)
