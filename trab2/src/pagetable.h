@@ -9,5 +9,7 @@ struct pagetable {
 typedef struct pagetable PageTable;
 
 PageTable *createPageTable(int pageSize);
+int *createPageVector(int memorySize, int pageSize, int *nPageVector);
+int getPageBits(int pageSize);
 
 #endif

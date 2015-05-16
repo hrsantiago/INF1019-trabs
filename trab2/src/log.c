@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "debug.h"
 #include "log.h"
 
 LogEntry *loadLog(const char* filename, int *nEntries)
@@ -22,7 +23,7 @@ LogEntry *loadLog(const char* filename, int *nEntries)
 
     fseek(fp, 0, SEEK_END);
     int lines = ftell(fp) / characterCount;
-    printf("Number of lines on log: %d\n", lines);
+    printfd("Number of lines on log: %d\n", lines);
 
     LogEntry *logEntries = (LogEntry*)malloc(lines * sizeof(LogEntry));
     if(!logEntries) {
