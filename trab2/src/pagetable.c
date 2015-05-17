@@ -42,3 +42,92 @@ int getPageBits(int pageSize)
 {
     return log2(pageSize << 10);
 }
+
+void updatePagesLRU(PageTable *pageTable, int *pageVector, int nPageVector)
+{
+
+}
+
+int getPageVectorRemoveIndexLRU(PageTable *pageTable, int *pageVector, int nPageVector)
+{
+    int minNotAccessedPageVectorIndex = -1;
+    int minNotAccessedPageTime;
+    int minPageVectorIndex = -1;
+    int minPageTime;
+
+    int i;
+    for(i = 0; i < nPageVector; ++i) {
+        if(i == 0) {
+            minPageVectorIndex = i;
+            minPageTime = pageTable[pageVector[i]].lastAccess;
+            if(pageTable[pageVector[i]].r == 0) {
+                minNotAccessedPageVectorIndex = i;
+                minNotAccessedPageTime = minPageTime;
+            }
+        }
+        else if(pageTable[pageVector[i]].lastAccess < minPageTime) {
+            minPageVectorIndex = i;
+            minPageTime = pageTable[pageVector[i]].lastAccess;
+            if(pageTable[pageVector[i]].r == 0) {
+                minNotAccessedPageVectorIndex = i;
+                minNotAccessedPageTime = minPageTime;
+            }
+        }
+    }
+
+    if(minNotAccessedPageVectorIndex != -1)
+        return minNotAccessedPageVectorIndex;
+    return minPageVectorIndex;
+}
+
+void updatePagesNRU(PageTable *pageTable, int *pageVector, int nPageVector)
+{
+    int i;
+    for(i = 0; i < nPageVector; ++i) {
+        int pageIndex = pageVector[i];
+        if(pageIndex != -1) {
+            pageTable[pageIndex].r = 0;
+        }
+    }
+}
+
+int getPageVectorRemoveIndexNRU(PageTable *pageTable, int *pageVector, int nPageVector)
+{
+    int x,y;
+    for(y = 0; y < 4; ++y) {
+        for(x = 0; x < nPageVector; ++x) {
+            PageTable *page = &pageTable[pageVector[x]];
+            if(y == 0 && page->r == 0 && page->w == 0)
+                return x;
+            if(y == 1 && page->r == 0 && page->w == 1)
+                return x;
+            if(y == 2 && page->r == 1 && page->w == 0)
+                return x;
+            if(y == 3 && page->r == 1 && page->w == 1)
+                return x;
+        }
+    }
+    return 0;
+}
+
+void updatePagesSEG(PageTable *pageTable, int *pageVector, int nPageVector)
+{
+
+}
+
+int getPageVectorRemoveIndexSEG(PageTable *pageTable, int *pageVector, int nPageVector)
+{
+    // remove if R=0
+    if(pageTable[pageVector[0]].r == 0)
+        return 0;
+
+    // set R=0, move it to the end and remove first
+    int pageIndex = pageVector[0];
+    pageTable[pageIndex].r = 0;
+
+    int i;
+    for(i = 0; i < nPageVector-1; ++i)
+        pageVector[i] = pageVector[i+1];
+    pageVector[nPageVector-1] = pageIndex;
+    return 0;
+}

@@ -26,10 +26,54 @@ int main(int argc, const char *argv[])
         g_debug = 1;
     }
 
+    void (*updatePages)(PageTable*, int*, int);
+    int (*getPageVectorRemoveIndex)(PageTable*, int*, int);
+
     const char* algorithm = argv[1];
+    if(strcmp(algorithm, "LRU") == 0) {
+        updatePages = updatePagesLRU;
+        getPageVectorRemoveIndex = getPageVectorRemoveIndexLRU;
+    }
+    else if(strcmp(algorithm, "NRU") == 0) {
+        updatePages = updatePagesNRU;
+        getPageVectorRemoveIndex = getPageVectorRemoveIndexNRU;
+    }
+    else if(strcmp(algorithm, "SEG") == 0) {
+        updatePages = updatePagesSEG;
+        getPageVectorRemoveIndex = getPageVectorRemoveIndexSEG;
+    }
+    else {
+        printf("Unknown algorithm %s\n", algorithm);
+        return -1;
+    }
+
     const char *filename = argv[2];
+    int nLogEntries;
+    LogEntry *logEntries = loadLog(filename, &nLogEntries);
+    if(!logEntries)
+        return -1;
+
     int pageSize = atol(argv[3]);
+    if(pageSize < 8 || pageSize > 32) {
+        printf("Invalid page size %d. It must be between 8KB - 32KB\n", pageSize);
+        return -1;
+    }
+
+    PageTable *pageTable = createPageTable(pageSize);
+    if(!pageTable)
+        return -1;
+
     int memorySize = atol(argv[4]);
+    if(memorySize < 128 || memorySize > 16384) {
+        printf("Invalid physical memory size %dKB. It must be between 128KB - 16384KB\n", memorySize);
+        return -1;
+    }
+
+    // vector that contains pages that are on physical memory
+    int nPageVector;
+    int *pageVector = createPageVector(memorySize, pageSize, &nPageVector);
+    if(!pageVector)
+        return -1;
 
     printf("Running simulator...\n");
     printf("Input file: %s\n", filename);
@@ -37,36 +81,20 @@ int main(int argc, const char *argv[])
     printf("Page size: %d KB\n", pageSize);
     printf("Page replacement algorithm: %s\n", algorithm);
 
-    int nLogEntries;
-    LogEntry *logEntries = loadLog(filename, &nLogEntries);
-    if(!logEntries)
-        return -1;
-
     int pageFaults = 0;
     int writtenPages = 0;
     int pageBits = getPageBits(pageSize);
-
-    PageTable *pageTable = createPageTable(pageSize);
-    if(!pageTable)
-        return -1;
-
-    // vector that contains pages on physical memory
-    int nPageVector;
-    int *pageVector = createPageVector(memorySize, pageSize, &nPageVector);
-    if(!pageVector)
-        return -1;
-
     int time;
     for(time = 0; time < nLogEntries; ++time) {
         // process 1 log entry per time unit
-
         LogEntry logEntry = logEntries[time];
         int pageIndex = logEntry.address >> pageBits;
 
-        int found = 0;
-        int i;
+        updatePages(pageTable, pageVector, nPageVector);
 
         // check if it's on physical memory
+        int found = 0;
+        int i;
         for(i = 0; i < nPageVector; ++i) {
             if(pageVector[i] == pageIndex) {
                 found = 1;
@@ -90,8 +118,7 @@ int main(int argc, const char *argv[])
             if(!found) {
                 ++pageFaults;
 
-                // TODO: use algorithm to choose a page index
-                int replaceIndex = 0; // using 0 for now..
+                int replaceIndex = getPageVectorRemoveIndex(pageTable, pageVector, nPageVector);
 
                 // write it back to disk
                 PageTable *lastPage = &pageTable[pageVector[replaceIndex]];
