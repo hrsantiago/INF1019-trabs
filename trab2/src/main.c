@@ -1,3 +1,6 @@
+// Henrique Rodrigues Santiago - 1120671
+// Lucas Ribeiro Borges - 1311003
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -9,27 +12,11 @@
 
 int g_debug = 0;
 
-int main(int argc, const char *argv[])
+int run(const char* algorithm, const char *filename, int pageSize, int memorySize)
 {
-    setbuf(stdout, NULL);
-
-    if(argc < 5) {
-        printf("You must enter at least 4 parameters:\n"
-               "Algorithm: LRU / NRU / SEG\n"
-               "A file containing addresses\n"
-               "Page size (KB)\n"
-               "Physical memory (KB)\n"
-               "-D is optional\n"
-               "Eg.\nsim-virtual LRU arquivo.log 16 128 -D\n");
-    }
-    else if(argc == 6 && strcmp(argv[5], "-D") == 0) {
-        g_debug = 1;
-    }
-
     void (*updatePages)(PageTable*, int*, int);
     int (*getPageVectorRemoveIndex)(PageTable*, int*, int);
 
-    const char* algorithm = argv[1];
     if(strcmp(algorithm, "LRU") == 0) {
         updatePages = updatePagesLRU;
         getPageVectorRemoveIndex = getPageVectorRemoveIndexLRU;
@@ -47,13 +34,11 @@ int main(int argc, const char *argv[])
         return -1;
     }
 
-    const char *filename = argv[2];
     int nLogEntries;
     LogEntry *logEntries = loadLog(filename, &nLogEntries);
     if(!logEntries)
         return -1;
 
-    int pageSize = atol(argv[3]);
     if(pageSize < 8 || pageSize > 32) {
         printf("Invalid page size %d. It must be between 8KB - 32KB\n", pageSize);
         return -1;
@@ -63,7 +48,6 @@ int main(int argc, const char *argv[])
     if(!pageTable)
         return -1;
 
-    int memorySize = atol(argv[4]);
     if(memorySize < 128 || memorySize > 16384) {
         printf("Invalid physical memory size %dKB. It must be between 128KB - 16384KB\n", memorySize);
         return -1;
@@ -90,7 +74,9 @@ int main(int argc, const char *argv[])
         LogEntry logEntry = logEntries[time];
         int pageIndex = logEntry.address >> pageBits;
 
-        updatePages(pageTable, pageVector, nPageVector);
+        // clock interrupt every 100 units of time
+        if(time % 100 == 0)
+            updatePages(pageTable, pageVector, nPageVector);
 
         // check if it's on physical memory
         int found = 0;
@@ -131,7 +117,7 @@ int main(int argc, const char *argv[])
             }
         }
 
-        // page is on disk, update it
+        // page is on mem, update it
         pageTable[pageIndex].lastAccess = time;
         if(logEntry.access == 'R')
             pageTable[pageIndex].r = 1;
@@ -142,6 +128,37 @@ int main(int argc, const char *argv[])
 
     printf("Page faults: %d\n", pageFaults);
     printf("Written pages: %d\n", writtenPages);
+    return 0;
+}
+
+int main(int argc, const char *argv[])
+{
+    setbuf(stdout, NULL);
+
+    if(argc < 5) {
+        printf("You must enter at least 4 parameters:\n"
+               "Algorithm: LRU / NRU / SEG\n"
+               "A file containing addresses\n"
+               "Page size (KB)\n"
+               "Physical memory (KB)\n"
+               "-D is optional\n"
+               "Eg.\nsim-virtual LRU arquivo.log 16 128 -D\n");
+    }
+    else if(argc == 6 && strcmp(argv[5], "-D") == 0) {
+        g_debug = 1;
+    }
+
+    int ret = run(argv[1], argv[2], atol(argv[3]), atol(argv[4]));
+    if(ret != 0)
+        return ret;
+
+    // run tests
+//    int pageSize;
+//    for(pageSize = 8; pageSize <= 32; pageSize += 8) {
+//        int ret = run(argv[1], argv[2], pageSize, atol(argv[4]));
+//        if(ret != 0)
+//            return ret;
+//    }
 
     return 0;
 }
