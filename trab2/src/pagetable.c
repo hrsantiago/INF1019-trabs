@@ -117,17 +117,19 @@ void updatePagesSEG(PageTable *pageTable, int *pageVector, int nPageVector)
 
 int getPageVectorRemoveIndexSEG(PageTable *pageTable, int *pageVector, int nPageVector)
 {
-    // remove if R=0
-    while(pageTable[pageVector[0]].r != 0) {
-
-        // set R=0, move it to the end and remove first
+    // remove if R=0, and move it to the end as this is a queue
+    do {
         int pageIndex = pageVector[0];
-        pageTable[pageIndex].r = 0;
 
         int i;
         for(i = 0; i < nPageVector-1; ++i)
             pageVector[i] = pageVector[i+1];
         pageVector[nPageVector-1] = pageIndex;
-    }
-    return 0;
+
+        if(pageTable[pageIndex].r == 0)
+            return nPageVector-1;
+        else
+            pageTable[pageIndex].r = 0;
+
+    } while(1);
 }
